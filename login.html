@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="style-login.css">
+    <title>Inicia Sesion 🌱</title>
+  </head>
+  <body>
+    <header class="header">
+      <div class="nav-container">
+        <!-- Link al 'index.html' -->
+        <a href="index.html" class="logo">
+          <div class="logo-icon">🌱</div>
+          <span>Riqch'ariy Finanzas</span>
+        </a>
+        <nav>
+          <ul class="nav-menu">
+            <!-- Links al 'index.html' con anclas -->
+            <li><a href="index.html#inicio">Inicio</a></li>
+            <li><a href="index.html#caracteristicas">Características</a></li>
+            <li><a href="index.html#etapas">Etapas</a></li>
+            <li><a href="index.html#familia">Familia</a></li>
+            <!-- Botones de Auth -->
+            <li class="auth-buttons">
+              <!-- El botón 'Iniciar Sesión' ahora está activo/resaltado -->
+              <a
+                href="login.html"
+                class="btn-login"
+                style="background: rgba(255, 255, 255, 0.1)"
+                >Iniciar Sesión</a
+              >
+              <!-- Link al 'register.html' -->
+              <a href="registro.html" class="btn-register">Registrarse</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <!-- ======== SECCIÓN PRINCIPAL DE LOGIN ======== -->
+    <main class="login-section">
+      <div class="login-card">
+        <!-- Logo dentro de la tarjeta -->
+        <div class="logo">
+          <div class="logo-icon">🌱</div>
+          <span>Riqch'ariy</span>
+        </div>
+
+        <h2>¡Bienvenido de vuelta!</h2>
+        <p>Ingresa a tu cuenta para continuar tu aventura financiera.</p>
+
+        <!-- Formulario de Inicio de Sesión -->
+        <form action="#">
+          <div class="form-group">
+            <label for="email">Correo Electrónico</label>
+            <input
+              type="email"
+              id="email"
+              class="form-input"
+              placeholder="tu.correo@ejemplo.com"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Contraseña</label>
+            <input
+              type="password"
+              id="password"
+              class="form-input"
+              placeholder="••••••••"
+              required
+            />
+            <a href="#" class="form-link">¿Olvidaste tu contraseña?</a>
+          </div>
+
+          <button type="submit" class="btn-submit">Ingresar</button>
+        </form>
+
+        <p class="form-footer-text">
+          ¿Aún no tienes una cuenta?
+          <!-- Link al 'register.html' -->
+          <a href="registro.html">Regístrate aquí</a>
+        </p>
+      </div>
+    </main>
+
+    <!-- ======== FOOTER (Idéntico al de tu index) ======== -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <div class="logo-icon">🌱</div>
+          <span class="logo" style="font-size: 1.8rem; color: white"
+            >Riqch'ariy Finanzas</span
+          >
+        </div>
+        <p style="font-size: 1.2rem; margin: 2rem 0">
+          Sembrando prosperidad en el corazón del hogar peruano
+        </p>
+        <div
+          style="
+            margin: 2rem 0;
+            color: #999;
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+          "
+        >
+          <p>📧 contacto@riqchariy.pe</p>
+          <p>📱 WhatsApp: +51 999 888 777</p>
+          <p>📍 Lima, Perú</p>
+        </div>
+        <p
+          style="
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+          "
+        >
+          &copy; 2025 Riqch'ariy Finanzas. Todos los derechos reservados.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
