@@ -1,0 +1,14 @@
+# Ignorar archivos del OS
+.DS_Store
+
+# Carpetas de Python/Backend
+__pycache__/
+.venv/
+.pytest_cache/
+*.log
+backend/requirements.txt # Opcional: solo si quieres excluir el archivo de requisitos
+
+# Carpetas del Frontend (Node/Vue)
+frontend/node_modules/
+frontend/dist/
+frontend/package-lock.json
