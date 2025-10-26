@@ -1,26 +1,47 @@
-// src/router/index.js
+// En frontend/src/router/index.js
 
-import { createRouter, createWebHistory } from 'vue-router'
-// Importar los componentes de las vistas
-import KioscoComponent from '@/components/KioscoComponent.vue'
-import ChatbotComponent from '@/components/ChatbotComponent.vue' 
+import { createRouter, createWebHistory } from 'vue-router';
+
+// 1. Importaciones de VISTAS (Manteniendo el nombre 'Component' para Kiosco/Chatbot)
+import KioscoComponent from '../views/KioscoComponent.vue'; // Mantienes el nombre Component
+import ChatbotComponent from '../views/ChatbotComponent.vue'; // Mantienes el nombre Component
+import HomeView from '../views/HomeView.vue';
+import LoginView from '../views/LoginView.vue';
+import RegisterView from '../views/RegisterView.vue'; 
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // RUTA PRINCIPAL (HOME)
     {
-      // RUTA PRINCIPAL: El Kiosco es la vista por defecto
       path: '/',
-      name: 'kiosco',
-      component: KioscoComponent 
+      name: 'home',
+      component: HomeView
+    },
+    // RUTAS DE AUTENTICACIÓN
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView
     },
     {
-      // RUTA SECUNDARIA: El Chatbot se carga aquí
+      path: '/register',
+      name: 'register',
+      component: RegisterView
+    },
+    // RUTAS DEL SIMULADOR (Usando los nombres 'Component' originales)
+    {
+      path: '/kiosco',
+      name: 'kiosco',
+      component: KioscoComponent
+    },
+    {
       path: '/chatbot',
       name: 'chatbot',
-      component: ChatbotComponent 
+      component: ChatbotComponent
     }
   ]
-})
+});
 
-export default router
+export default router;
