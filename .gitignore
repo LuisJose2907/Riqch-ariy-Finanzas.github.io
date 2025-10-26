@@ -1,17 +1,20 @@
 # Ignorar archivos del OS
 .DS_Store
 
-# Carpetas de Python/Backend
+# ----------------------------------------------------
+# CARPETAS DEL BACKEND (Python/FastAPI)
+# ----------------------------------------------------
 __pycache__/
 .venv/
-backend/ENV/
+backend/ENV/          # Ignora el entorno virtual dentro de la carpeta backend
 .pytest_cache/
 *.log
+/requirements.txt     # El archivo de dependencias debe estar en la raíz, pero si existe en frontend lo ignoramos.
 
-# Carpetas del Frontend (Node/Vue)
+# ----------------------------------------------------
+# CARPETAS DEL FRONTEND (Node/Vue)
+# ----------------------------------------------------
 frontend/node_modules/
 frontend/dist/
-frontend/.env
-/requirements.txt
-
-backend/ENV/
+frontend/.env         # Archivo de variables de entorno local
+frontend/package-lock.json # El lockfile debe ser ignorado si el backend tiene uno similar
