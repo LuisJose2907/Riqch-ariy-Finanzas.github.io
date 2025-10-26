@@ -7,16 +7,26 @@ import ProductCard from '@/components/ProductCard.vue';
 const sessionStore = useSessionStore();
 
 // 1. OBTENER PRODUCTOS DE PINIA (API 2)
-// Usamos el getter de Pinia que ya tiene la lista de productos cargada por App.vue
 const productos = computed(() => sessionStore.productosDisponibles);
 
 // 2. FUNCIÓN PARA MANEJAR LA COMPRA (LLAMA A LA API 3)
 const handleCompra = async (productId) => {
-    // Llama a la acción de Pinia: realiza la llamada POST a la API 3, 
-    // y luego ACTUALIZA el saldo y el inventario en el store.
-    await sessionStore.realizarTransaccion(productId);
-    
-    // El sidebar (SidebarComponent.vue) se actualizará automáticamente aquí.
+    // Añade el bloque try...catch para manejar visualmente los errores
+    try {
+        console.log(`Iniciando compra para Producto ID: ${productId}`);
+        
+        // Llama a la acción de Pinia. La acción manejará la lógica de la API 3
+        // y actualizará el store.
+        await sessionStore.realizarTransaccion(productId);
+        
+        // LÍNEA AGREGADA: Confirmación de éxito (temporal)
+        alert(`¡Compra exitosa! Nuevo saldo disponible.`); 
+        
+    } catch (error) {
+        // La acción de Pinia ya maneja el alert con el error (ej: saldo insuficiente),
+        // así que aquí solo dejamos el console.error de respaldo.
+        console.error("Fallo la transacción en KioscoComponent.");
+    }
 };
 </script>
 
