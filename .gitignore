@@ -12,3 +12,4 @@ backend/requirements.txt # Opcional: solo si quieres excluir el archivo de requi
 frontend/node_modules/
 frontend/dist/
 frontend/package-lock.json
+backend/ENV/
