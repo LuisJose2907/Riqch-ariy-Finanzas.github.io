@@ -1,204 +1,288 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import List, Dict, Any
-import json
-import random
-from fastapi.middleware.cors import CORSMiddleware 
-# --- SYSTEM PROMPT (SIMULACIÓN DE P4) ---
-# Este es el texto base que guía a la IA y se inyecta con variables dinámicas.
-SYSTEM_PROMPT_TEMPLATE = """
-Eres YACHAQ, un tutor financiero andino amigable y sabio. Tu objetivo es educar a un niño de la región de {region}, quien se encuentra en la etapa pedagógica {age_stage} (Brote o Desarrollo).
+# main.py - Backend del Simulador "Mi Kiosco Escolar" y Chatbot YACHAQ
+# Este archivo contiene la lógica de negocio y las definiciones de API.
 
-Reglas:
-1. Siempre usa un tono motivador y adaptado al contexto cultural peruano.
-2. Basas tus consejos en el contexto del kiosco: saldo, inventario y la región específica.
-3. Enfatiza los conceptos pedagógicos clave: Ahorro, Inversión, Riesgo y Competencia.
-"""
-# --- SETUP INICIAL ---
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+from typing import List, Dict, Optional
+import json
+import os
+import httpx # Necesario para simular la llamada a la IA
+
+# --- Configuración de la IA ---
+# Se utiliza el modelo gemini-2.5-flash-preview-09-2025 para las interacciones del chatbot YACHAQ.
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "") 
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent"
+# -----------------------------
+
+# --- Definición de Modelos Pydantic (Usado por FastAPI) ---
+
+class Product(BaseModel):
+    id: int
+    name: str
+    stage: str = Field(description="Etapa pedagógica: Brote (8-9), Tallo (10-11), Fruto (12+)")
+    base_cost: float = Field(description="Costo base de adquisición (sin variaciones de mercado)")
+    base_price: float = Field(description="Precio base de venta al público (sin variaciones de mercado)")
+    inventory: int = Field(description="Cantidad actual en inventario")
+    local_demand: str = Field(description="Demanda local: Alta, Media, Baja")
+    description: str = Field(description="Descripción pedagógica del producto")
+
+class KioscoState(BaseModel):
+    region: str = Field(description="Región actual del simulador (ej: Lima, Cusco)")
+    saldo: float = Field(description="Dinero disponible (capital de trabajo)")
+    products: List[Product]
+    pedagogical_focus: str = Field(description="El foco pedagógico de la sesión (ej: ahorro, riesgo, competencia)")
+
+class ChatRequest(BaseModel):
+    history: List[Dict[str, str]] = Field(description="Historial completo de la conversación (role: user/model, text: ...)")
+    kiosco_state: KioscoState = Field(description="Estado actual del kiosco para contextualizar la respuesta del IA")
+    user_query: str = Field(description="Mensaje nuevo del usuario")
+    region: str = Field(description="Región actual para contextualización (ej: Cusco)")
+
+class ChatResponse(BaseModel):
+    response_text: str
+    is_pedagogical: bool
+    source_citations: List[Dict[str, str]] = Field(default_factory=list, description="Citas si se usa búsqueda web")
+
+# --- Datos Iniciales (Declarados directamente para evitar FileNotFoundError) ---
+
+initial_state_lima = KioscoState(
+    region="Lima",
+    saldo=50.0,
+    products=[
+        Product(id=1, name="Jugo de caja", stage="Brote", base_cost=2.0, base_price=3.5, inventory=10, local_demand="Media", description="Bebida refrescante, fuente de vitaminas."),
+        Product(id=2, name="Chocolates", stage="Brote", base_cost=1.5, base_price=2.5, inventory=15, local_demand="Alta", description="Dulce popular, alta demanda en recreos."),
+        Product(id=3, name="Frutas", stage="Tallo", base_cost=1.0, base_price=2.0, inventory=20, local_demand="Baja", description="Opción saludable, baja demanda si no se promociona."),
+    ],
+    pedagogical_focus="ahorro"
+)
+
+initial_state_cusco = KioscoState(
+    region="Cusco",
+    saldo=75.0,
+    products=[
+        Product(id=1, name="Agua embotellada", stage="Tallo", base_cost=1.5, base_price=3.0, inventory=15, local_demand="Alta", description="Esencial debido a la altitud."),
+        Product(id=2, name="Barra energética", stage="Fruto", base_cost=3.0, base_price=5.0, inventory=10, local_demand="Media", description="Popular entre turistas y deportistas."),
+    ],
+    pedagogical_focus="riesgo"
+)
+
+# Simulación de estados de juego por región (para un juego de un solo usuario)
+current_kiosco_state: Dict[str, KioscoState] = {
+    "Lima": initial_state_lima,
+    "Cusco": initial_state_cusco
+}
+
+# --- Inicialización y Configuración de FastAPI ---
+
 app = FastAPI(
-    title="Riqch'ariy Finanzas - Backend MVP",
+    title="Backend Riqch'ariy Finanzas (P2)",
+    description="APIs para el simulador 'Mi Kiosco Escolar' y el chatbot pedagógico YACHAQ.",
     version="1.0.0"
 )
 
-# Configuración CORS 
-origins = ["http://localhost:5173", "http://localhost:8000", "*"]
+# Configuración CORS: Permite que el Frontend (cualquier origen) acceda a este Backend.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Permite todos los orígenes
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
+    allow_headers=["*"],  # Permite todos los encabezados
 )
 
-# --- CARGA DE DATOS ---
-def load_data():
-    """Carga los datos de productos y eventos desde el archivo JSON de P4."""
-    try:
-        with open("data/products.json", "r", encoding="utf-8") as f: 
-            data = json.load(f)
-        return data["products"], data["events"]
-    except FileNotFoundError:
-        # Esto ocurre si products.json fue creado, pero no guardado con el contenido JSON.
-        raise RuntimeError("ERROR: Archivo de datos no encontrado en data/products.json o está vacío.")
+# --- Funciones Auxiliares (Comunicación con IA) ---
 
-PRODUCTS_DATA, RETO_EVENTS = load_data()
+async def call_gemini_api(payload: dict, chat_data: ChatRequest) -> Dict:
+    """Función para llamar a la API de Gemini con manejo de errores y reintentos."""
+    if not GEMINI_API_KEY:
+        # Esto es un MOCK de respuesta para la prueba, ya que no tienes la clave API configurada
+        print("ADVERTENCIA: Usando respuesta simulada de IA. GEMINI_API_KEY no configurada.")
+        
+        # Obtenemos el saldo y foco del contexto
+        saldo_actual = chat_data.kiosco_state.saldo
+        foco_actual = chat_data.kiosco_state.pedagogical_focus
+        region_actual = chat_data.region
+        
+        mock_text = f"¡Hola! Soy YACHAQ, un tutor IA en la región de {region_actual}. Tienes un saldo de S/{saldo_actual:.2f}. Tu foco de la sesión es '{foco_actual}'. Sobre tu pregunta ('{chat_data.user_query}'), te recomiendo pensar en el {foco_actual} antes de tomar decisiones. [MOCK RESPONSE]"
+        
+        return {
+            "candidates": [{
+                "content": {
+                    "parts": [{"text": mock_text}]
+                }
+            }]
+        }
+
+    # Lógica para llamada real (comentada porque la clave no está disponible localmente)
+    # try:
+    #     async with httpx.AsyncClient() as client:
+    #         api_url_with_key = f"{GEMINI_API_URL}?key={GEMINI_API_KEY}"
+    #         response = await client.post(api_url_with_key, json=payload, headers={"Content-Type": "application/json"})
+    #         response.raise_for_status()
+    #         return response.json()
+    # except Exception as e:
+    #     print(f"Error al llamar a la API de Gemini: {e}")
+    #     return {"error": f"Error de conexión con la IA: {e}"}
+    
+def build_gemini_payload(chat_data: ChatRequest) -> dict:
+    """Construye el payload para la API de Gemini, incluyendo el System Instruction."""
+
+    # 1. System Instruction: Define el rol de YACHAQ y el contexto pedagógico.
+    system_instruction = f"""
+    Actúa como YACHAQ, un chatbot tutor pedagógico y experto en el juego 'Mi Kiosco Escolar'.
+    Tu objetivo es guiar a un niño en la Etapa {chat_data.kiosco_state.products[0].stage} (8-12 años) en temas de finanzas básicas.
+    El foco pedagógico actual es '{chat_data.kiosco_state.pedagogical_focus}'.
+    Siempre debes contextualizar tu respuesta usando la región actual: {chat_data.region}.
+
+    Instrucciones clave:
+    1. Responde de manera amigable, alentadora y usando un lenguaje simple.
+    2. Utiliza la información del estado del kiosco para dar consejos relevantes.
+    3. NO menciones directamente los detalles técnicos (Pydantic, Python, FastAPI).
+    4. El estado actual del kiosco es: Saldo S/{chat_data.kiosco_state.saldo}. Productos: {[(p.name, p.inventory) for p in chat_data.kiosco_state.products]}.
+    5. Si el usuario pregunta algo que no tiene que ver con finanzas, redirige amablemente al tema.
+    """
+
+    # 2. Historial de Conversación
+    contents = []
+    for message in chat_data.history:
+        contents.append({"role": message.get("role"), "parts": [{"text": message.get("text")}]})
+
+    # 3. El mensaje nuevo del usuario
+    contents.append({"role": "user", "parts": [{"text": chat_data.user_query}]})
+
+    # 4. Construcción final del Payload
+    payload = {
+        "contents": contents,
+        "systemInstruction": {
+            "parts": [{"text": system_instruction}]
+        },
+    }
+    return payload
 
 
-# --- MODELOS PYDANTIC ACTUALIZADOS (Nuevos Modelos para IA) ---
+# --- Endpoints de la API ---
 
-# Modelo base para el estado del kiosco
-class KioscoState(BaseModel):
-    saldo_actual: float = 50.00
-    inventario: Dict[str, int] = {} 
+@app.get("/status")
+def get_status():
+    """Endpoint de salud para verificar que el servicio está activo."""
+    return {"status": "ok", "service": "Backend P2 - Riqch'ariy Finanzas"}
 
-# Modelo para API 3 (Transacciones)
-class TransactionRequest(BaseModel):
-    user_state: KioscoState
-    product_name: str
-    quantity: int
-    is_sale: bool
+@app.get("/geo/context/{region}", response_model=KioscoState)
+async def get_kiosco_state(region: str):
+    """API 1: Retorna el estado inicial del kiosco para una región específica."""
+    if region in current_kiosco_state:
+        # Se devuelve directamente el objeto KioscoState que está correctamente tipado
+        return current_kiosco_state[region]
+    raise HTTPException(status_code=404, detail=f"Región '{region}' no encontrada.")
 
-# Nuevo Modelo para historial de Chat (API 4 y 5)
-class ChatMessage(BaseModel):
-    role: str # "user" o "assistant"
-    content: str
-
-# Nuevo Modelo para API 4: POST /ia/chat
-class ChatRequest(BaseModel):
-    user_context: KioscoState
-    region: str
-    age_stage: str
-    chat_history: List[ChatMessage]
-    new_message: str
-
-# Nuevo Modelo para API 5: POST /ia/feedback
-class FeedbackRequest(BaseModel):
-    user_context: KioscoState
-    region: str
-    age_stage: str
-    financial_result: float # Positivo para ganancia, negativo para pérdida
-    pedagogical_focus: str # Ej: "Fondo de emergencia", "Competencia de Precios"
-    event_description: str
-
-
-# --- IMPLEMENTACIÓN DE APIS ---
-
-# API 1: GET /geo/context
-@app.get("/geo/context", response_model=Dict[str, str])
-def get_geo_context():
-    """Simula la respuesta de Geo-IP."""
-    return {"region": "Lima", "age_stage": "Brote"}
-
-
-# API 2: GET /kiosco/products/{region}
-@app.get("/kiosco/products/{region}", response_model=List[Dict[str, Any]])
-def get_products(region: str):
-    """Devuelve los datos de productos de la región cargados desde products.json."""
-    if region not in PRODUCTS_DATA:
+@app.post("/transaction/buy", response_model=KioscoState)
+async def buy_products(region: str, product_id: int, quantity: int):
+    """API 2: Procesa la compra de productos, actualizando el inventario y el saldo."""
+    if region not in current_kiosco_state:
         raise HTTPException(status_code=404, detail=f"Región '{region}' no encontrada.")
-    return PRODUCTS_DATA[region]
+
+    state = current_kiosco_state[region]
+    product = next((p for p in state.products if p.id == product_id), None)
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado.")
+    if quantity <= 0:
+        raise HTTPException(status_code=400, detail="La cantidad debe ser positiva.")
+
+    cost = product.base_cost * quantity
+    if state.saldo < cost:
+        raise HTTPException(status_code=400, detail="Saldo insuficiente para la compra.")
+
+    # Ejecutar la transacción
+    state.saldo -= cost
+    product.inventory += quantity
+    # current_kiosco_state[region] ya está actualizado (se pasa por referencia)
+    return state
+
+@app.post("/transaction/sell", response_model=KioscoState)
+async def sell_products(region: str, product_id: int, quantity: int):
+    """API 3: Procesa la venta de productos, actualizando el saldo y el inventario."""
+    if region not in current_kiosco_state:
+        raise HTTPException(status_code=404, detail=f"Región '{region}' no encontrada.")
+
+    state = current_kiosco_state[region]
+    product = next((p for p in state.products if p.id == product_id), None)
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado.")
+    if quantity <= 0:
+        raise HTTPException(status_code=400, detail="La cantidad debe ser positiva.")
+    if product.inventory < quantity:
+        raise HTTPException(status_code=400, detail="Inventario insuficiente para la venta.")
+
+    # Ejecutar la transacción
+    revenue = product.base_price * quantity
+    state.saldo += revenue
+    product.inventory -= quantity
+    # current_kiosco_state[region] ya está actualizado (se pasa por referencia)
+    return state
 
 
-# API 3: POST /kiosco/transaccion
-@app.post("/kiosco/transaccion", response_model=KioscoState)
-def process_transaction(transaction: TransactionRequest):
-    current_state = transaction.user_state
+@app.post("/ia/chat", response_model=ChatResponse)
+async def chat_with_yachaq(chat_data: ChatRequest):
+    """API 4: Permite interactuar con el chatbot YACHAQ, contextualizado con el estado del kiosco."""
+
+    # 1. Construir el payload con el contexto
+    payload = build_gemini_payload(chat_data)
+
+    # 2. Llamar a la API de Gemini (se usa un mock de respuesta si no hay clave)
+    gemini_response = await call_gemini_api(payload, chat_data)
     
-    product_price = None
-    for region_products in PRODUCTS_DATA.values():
-        for product in region_products:
-            if product["name"] == transaction.product_name:
-                product_price = product["price"]
-                break
-        if product_price:
-            break
+    if "error" in gemini_response:
+        raise HTTPException(status_code=500, detail=gemini_response["error"])
 
-    if not product_price:
-        raise HTTPException(status_code=400, detail="Producto no válido.")
-
-    total_cost = product_price * transaction.quantity
-    
-    if transaction.is_sale:
-        if current_state.inventario.get(transaction.product_name, 0) < transaction.quantity:
-             raise HTTPException(status_code=400, detail="Venta fallida: Inventario insuficiente.")
-             
-        current_state.saldo_actual += total_cost
-        current_state.inventario[transaction.product_name] -= transaction.quantity
-             
-    else:
-        if current_state.saldo_actual < total_cost:
-            raise HTTPException(status_code=400, detail="Saldo insuficiente para la compra.")
+    # 3. Procesar la respuesta
+    try:
+        text_response = gemini_response["candidates"][0]["content"]["parts"][0]["text"]
         
-        current_state.saldo_actual -= total_cost
-        current_state.inventario[transaction.product_name] = current_state.inventario.get(transaction.product_name, 0) + transaction.quantity
+        return ChatResponse(
+            response_text=text_response,
+            is_pedagogical=True, # Por defecto es pedagógico
+            source_citations=[]
+        )
+    except (KeyError, IndexError):
+        raise HTTPException(status_code=500, detail="Respuesta inesperada o incompleta de la IA.")
 
-    return current_state
-
-
-# API 4: POST /ia/chat
-@app.post("/ia/chat", response_model=ChatMessage)
-def chat_with_yachaq(request: ChatRequest):
-    """Simula una conversación con el chatbot YACHAQ, usando el contexto del kiosco."""
+@app.post("/ia/reto-sol", response_model=KioscoState) # Cambiamos la respuesta a KioscoState para reflejar el cambio
+async def execute_reto_del_sol(region: str):
+    """API 5: Ejecuta la funcionalidad avanzada 'El Reto del Sol' con la IA."""
     
-    # 1. INTEGRACIÓN DEL SYSTEM PROMPT (P2)
-    # Se simula la creación del prompt final inyectando las variables de contexto.
-    final_system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
-        region=request.region,
-        age_stage=request.age_stage
-    )
-    # En un entorno real, este prompt se enviaría a Gemini/GPT junto con new_message.
-    
-    # 2. LÓGICA DE RESPUESTA SIMULADA (contextualizada)
-    user_msg = request.new_message.lower()
-    
-    if "saldo" in user_msg or "dinero" in user_msg:
-        response = f"Tu saldo actual es de S/ {request.user_context.saldo_actual:.2f}. Recuerda que estamos en la región de **{request.region}**, y cada centavo cuenta. ¡Siempre piensa en tu próximo movimiento!"
-    elif "inventario" in user_msg or "productos" in user_msg:
-        response = f"Tienes {sum(request.user_context.inventario.values())} artículos. Si estás en la etapa '{request.age_stage}', enfócate en los productos esenciales. ¡Revisa qué se vende más en **{request.region}**!"
-    elif "reto" in user_msg or "evento" in user_msg:
-        response = "El Reto del Sol te enseña sobre riesgos y oportunidades inesperadas, ¡algo clave para un 'emprendedor' en **{request.region}**! Analiza bien tus opciones antes de actuar."
-    else:
-        response = "Soy YACHAQ. ¿Qué pregunta tienes sobre tu kiosco o tus finanzas? Si tienes dudas sobre tu región, ¡dímelo!"
+    if region not in current_kiosco_state:
+        raise HTTPException(status_code=404, detail=f"Región '{region}' no encontrada.")
         
-    return {"role": "assistant", "content": response}
-
-
-# API 5: POST /ia/feedback
-@app.post("/ia/feedback", response_model=ChatMessage)
-def provide_pedagogical_feedback(request: FeedbackRequest):
-    """Genera un comentario pedagógico simulado basado en el resultado de una transacción o evento."""
+    state = current_kiosco_state[region]
     
-    # Se simula la inyección del contexto pedagógico para guiar la respuesta.
-    # El prompt final no se usa completamente, solo la lógica.
+    # -----------------------------------------------------
+    # LÓGICA DEL EVENTO (Ejecutado por el Backend, no la IA)
+    # -----------------------------------------------------
     
-    focus = request.pedagogical_focus
-    result = request.financial_result
+    event_message = ""
     
-    if result >= 0:
-        # Ganancia o Gasto controlado
-        if "Fondo de emergencia" in focus:
-            response = f"¡Excelente! Viste el evento '{request.event_description}'. Superaste el reto relacionado con el '{focus}'. Tener un fondo de emergencia te ayudó a manejar el gasto sin problemas en tu kiosco de **{request.region}**."
-        elif "Competencia de Precios" in focus:
-             response = f"¡Has gestionado la competencia de precios de **{request.region}** con éxito! Mantener la calidad o tu buena ubicación te hizo ganar."
-        else:
-            response = f"¡Tu decisión sobre '{focus}' fue muy rentable! Esto demuestra que sabes aprovechar las oportunidades en la etapa '{request.age_stage}'."
-    else:
-        # Pérdida o Gasto
-        if "Riesgo y seguro" in focus:
-            response = f"El evento '{request.event_description}' te afectó (Riesgo). Perdiste S/ {abs(result):.2f}. En el futuro, piensa en cómo puedes protegerte de este tipo de eventos, como con un seguro ficticio."
-        elif "Competencia de Precios" in focus:
-            response = f"Perdiste S/ {abs(result):.2f} debido a la competencia. En la región de **{request.region}**, siempre debes estar atento a lo que hacen tus vecinos. Es una lección importante sobre la competencia."
-        else:
-            response = f"Es una lección importante. Perdiste S/ {abs(result):.2f} debido al evento '{focus}'. Es parte del riesgo de manejar un negocio. ¡No te rindas!"
-            
-    return {"role": "assistant", "content": response}
-
-
-# API 6: GET /reto/event
-@app.get("/reto/event", response_model=Dict[str, Any])
-def get_reto_event():
-    """Genera un evento aleatorio para el Reto del Sol."""
-    if not RETO_EVENTS:
-        raise HTTPException(status_code=500, detail="No hay eventos definidos para el Reto del Sol.")
+    if region == "Lima":
+        # Evento en Lima: Aumenta la demanda y el saldo
+        event_message = "¡Reto del Sol: Un evento deportivo en Lima ha disparado la demanda de jugos de caja! ¡Ventas extra!"
+        product_id_jugo = 1 # ID del jugo de caja
+        product = next((p for p in state.products if p.id == product_id_jugo), None)
         
-    return random.choice(RETO_EVENTS)
+        if product and product.inventory >= 5:
+            state.saldo += product.base_price * 5
+            product.inventory -= 5
+        elif product:
+            event_message = "¡Reto del Sol! Un gran evento falló: ¡No tenías suficiente stock de jugos de caja! Pierdes S/5.00 en oportunidades."
+            state.saldo -= 5.0
+
+    elif region == "Cusco":
+        # Evento en Cusco: Pequeña ganancia inesperada (turismo)
+        event_message = "¡Reto del Sol: Un turista ha pagado extra por una barra energética! Ganancia inesperada."
+        state.saldo += 5.0
+    
+    # Después de la lógica, actualizamos el mensaje de la región (temporalmente para mostrar el resultado)
+    state.pedagogical_focus = event_message
+    
+    # En un entorno real, la IA generaría la narrativa, pero aquí el Backend ejecuta la lógica
+    return state
