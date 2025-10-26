@@ -33,10 +33,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-    <SidebarComponent class="lg:w-64 w-full bg-blue-900 text-white shadow-lg p-4" />
-    <main class="flex-1 overflow-y-auto p-4 lg:p-8">
-      <HeaderComponent class="mb-6 border-b pb-4" />
+  <div class="flex flex-col lg:flex-row min-h-screen bg-gray-100"> 
+    
+    <SidebarComponent class="lg:w-64 w-full bg-blue-950 text-white shadow-2xl p-4" /> 
+    
+    <main class="flex-1 overflow-y-auto p-4 lg:p-10">
+      <HeaderComponent class="mb-8" /> 
       <RouterView /> 
     </main>
   </div>
