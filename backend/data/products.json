@@ -1,0 +1,35 @@
+{
+  "products": {
+    "Lima": [
+      {"name": "Chicha Morada (botella 1L)", "price": 2.50, "cost_base": 2.00, "unit_of_measure": "botella", "is_essential": false, "pedagogical_value": "Control de gastos", "perishability_days": 10, "offer_stage": "Brote", "offer_price": 2.20, "local_demand": "media"},
+      {"name": "Galleta Soda (pack)", "price": 1.00, "cost_base": 1.50, "unit_of_measure": "paquete", "is_essential": true, "pedagogical_value": "Precios de oferta", "perishability_days": 90, "offer_stage": null, "offer_price": null, "local_demand": "alta"},
+      {"name": "Mani Tostado (100g)", "price": 0.50, "cost_base": 0.40, "unit_of_measure": "gramos", "is_essential": true, "pedagogical_value": "Ingreso diario", "perishability_days": 60, "offer_stage": "Desarrollo", "offer_price": 0.35, "local_demand": "media"},
+      {"name": "Barra de Cereal Saludable", "price": 1.50, "cost_base": 1.20, "unit_of_measure": "unidad", "is_essential": false, "pedagogical_value": "Producto con margen alto", "perishability_days": 45, "offer_stage": null, "offer_price": null, "local_demand": "baja"},
+      {"name": "Bebida Energética (300ml)", "price": 3.00, "cost_base": 2.50, "unit_of_measure": "lata", "is_essential": false, "pedagogical_value": "Producto de alta rotación", "perishability_days": 200, "offer_stage": "Desarrollo", "offer_price": 2.80, "local_demand": "alta"},
+      {"name": "Caramelo de Menta (Unidad)", "price": 0.20, "cost_base": 0.15, "unit_of_measure": "unidad", "is_essential": false, "pedagogical_value": "Venta al detalle", "perishability_days": 360, "offer_stage": null, "offer_price": null, "local_demand": "media"}
+    ],
+    "Cusco": [
+      {"name": "Jugo de Durazno (300ml)", "price": 3.20, "cost_base": 3.00, "unit_of_measure": "botella", "is_essential": false, "pedagogical_value": "Comparación de precios (variación regional)", "perishability_days": 15, "offer_stage": "Brote", "offer_price": 2.80, "local_demand": "media"},
+      {"name": "Pan con Queso Andino", "price": 1.80, "cost_base": 1.50, "unit_of_measure": "unidad", "is_essential": true, "pedagogical_value": "Valor de la comida", "perishability_days": 3, "offer_stage": null, "offer_price": null, "local_demand": "alta"}
+    ],
+    "Arequipa": [
+      {"name": "Bolsa de Papa Rellena (Frita)", "price": 2.00, "cost_base": 1.60, "unit_of_measure": "unidad", "is_essential": true, "pedagogical_value": "Margen y costos de preparación", "perishability_days": 1, "offer_stage": "Desarrollo", "offer_price": 1.50, "local_demand": "alta"},
+      {"name": "Gaseosa Regional (Inca Kola)", "price": 2.80, "cost_base": 2.20, "unit_of_measure": "botella", "is_essential": false, "pedagogical_value": "Demanda por marca", "perishability_days": 180, "offer_stage": null, "offer_price": null, "local_demand": "media"}
+    ],
+    "Iquitos": [
+      {"name": "Jugo de Camu Camu", "price": 3.50, "cost_base": 2.50, "unit_of_measure": "vaso", "is_essential": false, "pedagogical_value": "Producto de alto margen", "perishability_days": 1},
+      {"name": "Hojuelas de Plátano", "price": 1.50, "cost_base": 1.20, "unit_of_measure": "paquete", "is_essential": true, "pedagogical_value": "Producto local", "perishability_days": 30}
+    ]
+  },
+  "events": [
+    {"id": 1, "name": "Tubería Rota", "description": "Debes pagar S/ 10 por reparación urgente. (Fallo inesperado)", "cost": 10.00, "inventory_change": 0, "type": "gasto_inesperado", "pedagogical_focus": "Fondo de emergencia", "applies_to_stage": ["Brote", "Desarrollo"], "applies_to_region": ["Lima", "Cusco", "Arequipa"]},
+    {"id": 8, "name": "Feria Gastronómica Local (Lima)", "description": "La demanda de Chicha Morada aumenta. Vendemos 5 unidades extra.", "cost": -2.00, "inventory_change": -5, "product": "Chicha Morada (botella 1L)", "type": "incremento_demanda", "pedagogical_focus": "Marketing y Eventos", "applies_to_stage": ["Brote", "Desarrollo"], "applies_to_region": ["Lima"]},
+    {"id": 2, "name": "Oferta Express", "description": "Compra 5 packs de galletas a mitad de precio. ¡Oportunidad de ahorro!", "cost": -2.50, "inventory_change": 5, "product": "Galleta Soda (pack)", "type": "ahorro_inteligente", "pedagogical_focus": "Ahorro por volumen", "applies_to_stage": ["Brote"], "applies_to_region": ["Lima", "Cusco", "Arequipa", "Iquitos"]},
+    {"id": 3, "name": "Insecto en el Kiosco", "description": "Pierdes un producto y pagas S/ 2 de fumigación. (Pérdida por descuido)", "cost": 2.00, "inventory_change": -1, "product": "Galleta Soda (pack)", "type": "perdida_inventario", "pedagogical_focus": "Riesgo y seguro", "applies_to_stage": ["Brote", "Desarrollo"], "applies_to_region": ["Lima", "Cusco", "Arequipa"]},
+    {"id": 9, "name": "Kiosco Competidor (Lima)", "description": "Tu vecino bajó el precio de las Bebidas Energéticas. Pierdes S/ 4 por ventas lentas.", "cost": 4.00, "inventory_change": 0, "type": "ajuste_competencia", "pedagogical_focus": "Competencia de Precios", "applies_to_stage": ["Desarrollo"], "applies_to_region": ["Lima"]},
+    {"id": 4, "name": "Inspección Sanitaria", "description": "Si tienes todos los productos esenciales, ganas S/ 5 por buen manejo.", "cost": -5.00, "inventory_change": 0, "type": "recompensa_manejo", "pedagogical_focus": "Inversión en calidad", "applies_to_stage": ["Desarrollo"], "applies_to_region": ["Lima", "Cusco", "Arequipa", "Iquitos"]},
+    {"id": 5, "name": "Día de la Madre", "description": "¡Felicidades! Todos los productos en Lima suben S/ 0.50 por alta demanda.", "cost": 0.00, "inventory_change": 0, "type": "ajuste_precio_demanda", "pedagogical_focus": "Oferta y demanda", "applies_to_stage": ["Brote", "Desarrollo"], "applies_to_region": ["Lima"]},
+    {"id": 6, "name": "Costo de Almacenamiento", "description": "Debido al gran inventario, pagas S/ 3 por costos de almacenamiento.", "cost": 3.00, "inventory_change": 0, "type": "gasto_fijo", "pedagogical_focus": "Costos fijos", "applies_to_stage": ["Desarrollo"], "applies_to_region": ["Lima", "Cusco", "Arequipa"]},
+    {"id": 7, "name": "Producto Vencido", "description": "Una botella de Chicha Morada caducó, pierdes S/ 2.50. (Inventario perecible)", "cost": 0.00, "inventory_change": -1, "product": "Chicha Morada (botella 1L)", "type": "perdida_perecible", "pedagogical_focus": "Manejo de inventario", "applies_to_stage": ["Brote"], "applies_to_region": ["Lima"]}
+  ]
+}
