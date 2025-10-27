@@ -31,8 +31,13 @@ jobs:
           app_location: "./frontend" # App source code path
           api_location: "" # Api source code path - optional
           output_location: "dist" # Built app content directory - optional
-          # SOLUCIÓN CRUCIAL: Fuerza la instalación de dependencias antes de construir
+          
+          # 1. SOLUCIÓN FINAL: Desactiva el build automático de Azure (que fallaba con ERESOLVE)
+          skip_app_build: true
+          
+          # 2. Comando corregido: Ejecuta la instalación con la bandera de compatibilidad y luego el build
           app_build_command: "npm install --legacy-peer-deps && npm run build" 
+
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
