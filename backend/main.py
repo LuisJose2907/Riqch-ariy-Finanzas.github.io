@@ -8,7 +8,7 @@ from typing import List, Dict, Optional
 import json
 import os
 import httpx # Necesario para simular la llamada a la IA
-
+from routers import profesor 
 # --- Configuración de la IA ---
 # Se utiliza el modelo gemini-2.5-flash-preview-09-2025 para las interacciones del chatbot YACHAQ.
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "") 
@@ -88,7 +88,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
     allow_headers=["*"],  # Permite todos los encabezados
-)
+) app.include_router(profesor.router
 
 # --- Funciones Auxiliares (Comunicación con IA) ---
 
