@@ -33,11 +33,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col lg:flex-row min-h-screen bg-gray-100"> 
+  <div class="flex flex-col lg:flex-row min-h-screen layout-wrapper"> 
     
     <SidebarComponent class="lg:w-64 w-full bg-blue-950 text-white shadow-2xl p-4" /> 
     
-    <main class="flex-1 overflow-y-auto p-4 lg:p-10">
+    <main class="flex-1 overflow-y-auto main-content-area">
       <HeaderComponent class="mb-8" /> 
       <RouterView /> 
     </main>
@@ -45,5 +45,27 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* Tu estilo aquí */
+/* No se necesitan estilos con 'scoped' ya que todos los estilos ahora son globales o de Tailwind */
+</style>
+
+<style>
+/* Estilos globales para la aplicación */
+#app {
+  /* Aseguramos que la app ocupe toda la altura */
+  min-height: 100vh;
+}
+
+/* 1. Estilo para el contenedor general del Layout (donde está Sidebar y Main) */
+.layout-wrapper {
+  /* Usamos un fondo muy sutil y claro (igual que el QA estético) para que las tarjetas de las views destaquen */
+  background: #f7f9fb; /* Un gris muy claro, casi blanco azulado */
+}
+
+/* 2. Estilo para el área principal de contenido (el <main> que envuelve RouterView) */
+.main-content-area {
+  padding: 2rem; /* Mantener un buen padding */
+  flex-grow: 1;
+  /* Asegurar que el contenido dentro pueda tener scroll si es necesario */
+  overflow-y: auto;
+}
 </style>
