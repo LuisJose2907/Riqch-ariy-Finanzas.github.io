@@ -1,8 +1,7 @@
 // frontend/postcss.config.js
 export default {
   plugins: {
-    // Estas líneas funcionan perfectamente con Tailwind v3.x
-    tailwindcss: {},
+    tailwindcss: {}, // Tailwind v3.x funciona perfectamente con esta sintaxis
     autoprefixer: {},
   },
 };

@@ -1,5 +1,5 @@
 <script setup>
-import { useSessionStore } from '@/stores/sessionStore';
+import { useSessionStore } from '@/stores/session';;
 import { computed } from 'vue';
 // Asegúrate de que la ruta a tu ProductCard es correcta
 import ProductCard from '@/components/ProductCard.vue'; 

@@ -5,7 +5,7 @@ import axios from 'axios';
 import HeaderComponent from '@/components/HeaderComponent.vue'; 
 import SidebarComponent from '@/components/SidebarComponent.vue'; 
 import RetoDelSolModal from '@/components/RetoDelSolModal.vue'; 
-import { useSessionStore } from '@/stores/sessionStore'; 
+import { useSessionStore } from './stores/session.js';
 
 // **INICIALIZACIÓN DE PINIA Y VARIABLES**
 const sessionStore = useSessionStore();

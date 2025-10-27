@@ -4,8 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 // 1. Importaciones de VISTAS
 import KioscoComponent from "../components/KioscoComponent.vue";
-
-import ChatbotComponent from '../views/ChatbotComponent.vue';
+import ChatbotComponent from '../components/ChatbotComponent.vue';
 import HomeView from '../views/HomeView.vue';
 import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
