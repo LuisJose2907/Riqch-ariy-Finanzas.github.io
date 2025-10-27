@@ -31,16 +31,17 @@ const handleCompra = async (productId) => {
 </script>
 
 <template>
-    <div class="kiosco-view">
-        <h1 class="text-3xl font-semibold mb-6 text-gray-800">
-            🛒 Mi Kiosco Escolar
+    <div class="kiosco-view bg-white p-8 rounded-2xl shadow-2xl border-t-8 border-blue-600">
+        
+        <h1 class="text-4xl font-extrabold mb-8 text-gray-800 border-b pb-4">
+            <span class="text-blue-600">🛒</span> Mi Kiosco Escolar <span class="text-sm font-normal text-gray-500 ml-2">Simulación Nivel 4</span>
         </h1>
         
-        <div v-if="productos.length === 0" class="text-center p-10 text-gray-500">
-            Cargando productos o la API 2 no está disponible.
+        <div v-if="productos.length === 0" class="text-center p-10 text-gray-500 bg-gray-50 rounded-lg">
+            <p>Cargando productos o la API 2 no está disponible. Verifique la conexión con el backend.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <ProductCard 
                 v-for="product in productos"
                 :key="product.id"
@@ -52,5 +53,10 @@ const handleCompra = async (productId) => {
 </template>
 
 <style scoped>
-/* Estilos si son necesarios */
+/*
+ * NOTA: La vista del Kiosco ahora usa el contenedor principal para aplicar 
+ * el estilo de 'tarjeta' (bg-white, shadow-2xl, border-t-8).
+ * Asegúrate de que el componente ProductCard también tenga estilos de tarjeta
+ * (bg-white, shadow-md, rounded-xl) para que el diseño se vea coherente.
+ */
 </style>
