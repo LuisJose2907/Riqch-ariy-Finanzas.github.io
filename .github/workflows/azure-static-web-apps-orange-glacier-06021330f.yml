@@ -33,7 +33,7 @@ jobs:
           output_location: "dist" # Built app content directory - optional
           
           # 1. SOLUCIÓN FINAL: Desactiva el build automático de Azure (que fallaba con ERESOLVE)
-          skip_app_build: true
+          #skip_app_build: true
           
           # 2. Comando corregido: Ejecuta la instalación con la bandera de compatibilidad y luego el build
           app_build_command: "npm install --legacy-peer-deps && npm run build" 
