@@ -1,17 +1,21 @@
 <script setup>
 // **IMPORTS NECESARIOS PARA EL TEMPLATE Y LA LÓGICA**
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue'; 
 import axios from 'axios';
-import HeaderComponent from '@/components/HeaderComponent.vue'; // Necesario para <HeaderComponent>
-import SidebarComponent from '@/components/SidebarComponent.vue'; // Necesario para <SidebarComponent>
-import { useSessionStore } from '@/stores/sessionStore'; // Necesario para la lógica de Pinia
+import HeaderComponent from '@/components/HeaderComponent.vue'; 
+import SidebarComponent from '@/components/SidebarComponent.vue'; 
+import RetoDelSolModal from '@/components/RetoDelSolModal.vue'; 
+import { useSessionStore } from '@/stores/sessionStore'; 
 
 // **INICIALIZACIÓN DE PINIA Y VARIABLES**
 const sessionStore = useSessionStore();
 const API_BASE_URL = import.meta.env.VITE_APP_API_URL; 
 
+// Estado para forzar la recarga de componentes después de un evento (API 6)
+const lastUpdatedKey = ref(Date.now()); 
+
 // **LÓGICA DE CARGA INICIAL (APIs 1 y 2)**
-onMounted(async () => {
+const fetchInitialData = async () => {
     if (!API_BASE_URL) {
         console.error("ERROR: VITE_APP_API_URL no está definida.");
         return;
@@ -26,10 +30,30 @@ onMounted(async () => {
         const productsResponse = await axios.get(`${API_BASE_URL}/kiosco/productos`);
         sessionStore.setProductos(productsResponse.data);
         
+        // Cargar estadísticas del usuario al inicio (API 5)
+        sessionStore.fetchUserStats(); 
+        
     } catch (e) {
-        console.error("Error crítico al cargar APIs 1/2. ¿El backend está corriendo?", e);
+        console.error("Error crítico al cargar APIs iniciales. ¿El backend está corriendo?", e);
     }
-});
+}
+
+onMounted(fetchInitialData);
+
+// FUNCIÓN CLAVE PARA RECARGAR TODO EL ESTADO DESPUÉS DEL EVENTO DEL PROFESOR
+const recargarTodo = async () => {
+    console.log("Evento 'Reto del Sol' aplicado. Recargando datos...");
+    
+    // 1. Vuelve a llamar a la API 2 (Productos) - Actualiza Kiosco
+    await fetchInitialData(); 
+    
+    // 2. 🎯 CRUCIAL: Recarga los datos del Sidebar (Saldo/Inventario - API 5)
+    // Asumiendo que esta acción YA EXISTE en tu Pinia Store.
+    sessionStore.fetchUserStats(); 
+    
+    // 3. Forzar el re-render de las Vistas (RouterView y KioscoComponent)
+    lastUpdatedKey.value = Date.now(); 
+};
 </script>
 
 <template>
@@ -39,7 +63,16 @@ onMounted(async () => {
     
     <main class="flex-1 overflow-y-auto main-content-area">
       <HeaderComponent class="mb-8" /> 
-      <RouterView /> 
+
+      <div class="mb-8 flex justify-end">
+        <RetoDelSolModal 
+          :region="sessionStore.contextoRegional.region"
+          @reto-aplicado="recargarTodo" 
+        />
+      </div>
+      
+      <RouterView :key="lastUpdatedKey" /> 
+      
     </main>
   </div>
 </template>
@@ -51,21 +84,16 @@ onMounted(async () => {
 <style>
 /* Estilos globales para la aplicación */
 #app {
-  /* Aseguramos que la app ocupe toda la altura */
   min-height: 100vh;
 }
 
-/* 1. Estilo para el contenedor general del Layout (donde está Sidebar y Main) */
 .layout-wrapper {
-  /* Usamos un fondo muy sutil y claro (igual que el QA estético) para que las tarjetas de las views destaquen */
-  background: #f7f9fb; /* Un gris muy claro, casi blanco azulado */
+  background: #f7f9fb; 
 }
 
-/* 2. Estilo para el área principal de contenido (el <main> que envuelve RouterView) */
 .main-content-area {
-  padding: 2rem; /* Mantener un buen padding */
+  padding: 2rem; 
   flex-grow: 1;
-  /* Asegurar que el contenido dentro pueda tener scroll si es necesario */
   overflow-y: auto;
 }
 </style>
