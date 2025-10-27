@@ -88,7 +88,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
     allow_headers=["*"],  # Permite todos los encabezados
-) 
+);
 app.include_router(profesor.router)
 
 # --- Funciones Auxiliares (Comunicación con IA) ---
