@@ -3,7 +3,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 // 1. Importaciones de VISTAS
-import KioscoComponent from '../views/KioscoComponent.vue';
+import KioscoComponent from "../components/KioscoComponent.vue";
+
 import ChatbotComponent from '../views/ChatbotComponent.vue';
 import HomeView from '../views/HomeView.vue';
 import LoginView from '../views/LoginView.vue';
