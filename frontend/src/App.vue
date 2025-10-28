@@ -6,6 +6,7 @@ import HeaderComponent from '@/components/HeaderComponent.vue';
 import SidebarComponent from '@/components/SidebarComponent.vue'; 
 import RetoDelSolModal from '@/components/RetoDelSolModal.vue'; 
 import { useSessionStore } from './stores/session.js';
+import './assets/main.css';
 
 // **INICIALIZACIÓN DE PINIA Y VARIABLES**
 const sessionStore = useSessionStore();
@@ -114,11 +115,11 @@ const recargarTodo = async () => {
 }
 
 .layout-wrapper {
-  background: #f7f9fb; 
+  /*background: #f7f9fb; */
 }
 
 .main-content-area {
-  padding: 2rem; 
+  /*padding: 2rem; */
   flex-grow: 1;
   overflow-y: auto;
 }
