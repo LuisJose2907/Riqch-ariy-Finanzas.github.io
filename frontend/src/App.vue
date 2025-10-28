@@ -23,7 +23,7 @@ const fetchInitialData = async () => {
     
     try {
         // API 1: Obtener el Contexto 
-        const contextResponse = await axios.get(`${API_BASE_URL}/geo/context`);
+        const contextResponse = await axios.get(`https://riqch-ariy-finanzas.azurewebsites.net/api/v1/geo/context`);
         sessionStore.setContexto(contextResponse.data); 
 
         // API 2: Obtener Productos
