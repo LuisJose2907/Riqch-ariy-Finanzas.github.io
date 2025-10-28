@@ -23,15 +23,41 @@ const fetchInitialData = async () => {
     
     try {
         // API 1: Obtener el Contexto 
-        const contextResponse = await axios.get(`https://riqch-ariy-finanzas.azurewebsites.net/api/v1/geo/context`);
-        sessionStore.setContexto(contextResponse.data); 
+        //const contextResponse = await axios.get(`${API_BASE_URL}/geo/context`);
+        //sessionStore.setContexto(contextResponse.data); 
+
+        // Las llamadas reales al backend están comentadas
+        console.warn("********************************************************");
+        console.warn("MODO DE DESARROLLO: ¡El backend está desconectado!");
+        console.warn("Usando datos 'mock' (falsos) para el frontend.");
+        console.warn("********************************************************");
+
+
+        // --- MOCK API 1: Obtener el Contexto ---
+
+  
+        // Datos falsos para el contexto:
+        const fakeContext = {
+          id: "user_123",
+          nombre: "Usuario de Prueba",
+          region: "lima",
+          configuraciones: { tema: "oscuro" }
+        };
+        sessionStore.setContexto(fakeContext); // Usamos el objeto falso
 
         // API 2: Obtener Productos
-        const productsResponse = await axios.get(`${API_BASE_URL}/kiosco/productos`);
-        sessionStore.setProductos(productsResponse.data);
-        
-        // Cargar estadísticas del usuario al inicio (API 5)
-        sessionStore.fetchUserStats(); 
+        //const productsResponse = await axios.get(`${API_BASE_URL}/kiosco/productos`);
+        //sessionStore.setProductos(productsResponse.data);
+        //
+        //// Cargar estadísticas del usuario al inicio (API 5)
+        //sessionStore.fetchUserStats(); 
+
+        const fakeProducts = [
+          { id: "prod_A", nombre: "Chizito Falso", precio: 1.50, stock: 10 },
+          { id: "prod_B", nombre: "Inka Kola Falsa", precio: 2.50, stock: 5 },
+  ];
+  sessionStore.setProductos(fakeProducts); // Usamos el array falso
+
         
     } catch (e) {
         console.error("Error crítico al cargar APIs iniciales. ¿El backend está corriendo?", e);
