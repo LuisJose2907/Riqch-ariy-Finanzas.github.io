@@ -32,10 +32,8 @@ jobs:
           api_location: "" # Api source code path - optional
           output_location: "dist" # Built app content directory - optional
           
-          # 1. SOLUCIÓN FINAL: Desactiva el build automático de Azure (que fallaba con ERESOLVE)
+          # SOLUCIÓN PARA ERRORES DE DEPENDENCIA (ERESOLVE)
           skip_app_build: true
-          
-          # 2. Comando corregido: Ejecuta la instalación con la bandera de compatibilidad y luego el build
           app_build_command: "npm install --legacy-peer-deps && npm run build" 
 
           ###### End of Repository/Build Configurations ######
@@ -50,5 +48,5 @@ jobs:
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ORANGE_GLACIER_06021330F }}
-          action: "close"
-          app_location: "./frontend"
+          action: "close" 
+          app_location: "./frontend" # ✅ Esta línea fue corregida por problemas de indentación
